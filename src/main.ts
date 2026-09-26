@@ -64,17 +64,22 @@ function isActress(data: unknown): data is Actress {
     'id' in data && typeof data.id === "number" && //controllo id
     'name' in data && typeof data.name === 'string' && //controllo nome
     'birth_year' in data && typeof data.birth_year === 'number' && //controllo compleanno
-    'death_year' in data && typeof data.death_year === 'number' && //controllo anno morte
+
+
+    //aggiungo questa espressione essendo un dato opzionale può non esserci come proprietà farci un controllo 
+    // con il type guard implicitamente dice che deve esserci obbligatoriamente dato che lo controlla e genera un errore di tipo questa espressione
+    //considera anche le attrici ancora in vita
+    (!('death_year' in data) || typeof data.death_year === 'number') && //controllo anno morte
     'biography' in data && typeof data.biography === 'string' && //controllo biografia 
     'image' in data && typeof data.image === 'string' && //controllo immagine
-    'most_famous_movie' in data &&
+    'most_famous_movies' in data &&
 
     //qui come visto in correzione vado a verificare che la mia tuple rispecchia
     //le caratteristiche di dato che mi servono 
 
-    data.most_famous_movie instanceof Array &&
-    data.most_famous_movie.length === 3 &&
-    data.most_famous_movie.every(m => typeof m === 'string') &&
+    data.most_famous_movies instanceof Array &&
+    data.most_famous_movies.length === 3 &&
+    data.most_famous_movies.every(m => typeof m === 'string') &&
     'awards' in data && typeof data.awards === 'string' && //controllo premi
     'nationality' in data && typeof data.nationality === 'string' //controllo nazionalità
   ) {
@@ -88,12 +93,12 @@ function isActress(data: unknown): data is Actress {
 async function getActress(id: number): Promise<Actress | null> {
 
   try {
-    const response = await fetch(`URL_API/actresses/${id}`)
+    const response = await fetch(`${URL_API}/actresses/${id}`)
     if (!response.ok) {
       throw new Error(`ERRORE HTTP ${response.status}:${response.statusText}`);
     }
     const data: unknown = await response.json()
-
+    console.log(data)
     if (!isActress(data)) {
       throw new Error("Formato dei dati non corretto");
     }
@@ -120,7 +125,7 @@ Può essere anche un array vuoto. */
 
 async function getAllActresses(): Promise<Actress[]> {
   try {
-    const response = await fetch(`URL_API/actresses`)
+    const response = await fetch(`${URL_API}/actresses`)
     if (!response.ok) {
       throw new Error(`ERRORE HTTP ${response.status}:${response.statusText}`);
     }
@@ -129,7 +134,7 @@ async function getAllActresses(): Promise<Actress[]> {
     if (!(data instanceof Array)) {
       throw new Error("Formato dei dati non corretto");
     }
-    const filteredDataActress: Actress[] = data.filter(a => !isActress(a))
+    const filteredDataActress: Actress[] = data.filter(a => isActress(a))
     return filteredDataActress
 
   } catch (error) {
@@ -141,6 +146,8 @@ async function getAllActresses(): Promise<Actress[]> {
     return []
   }
 };
+
+
 
 /*📌 Milestone 5
 Crea una funzione getActresses che riceve un array di numeri (gli id delle attrici).
@@ -171,3 +178,4 @@ async function getActresses(arrayId: number[]): Promise<(Actress | null)[]> {
   }
 }
 
+getActress(1)
